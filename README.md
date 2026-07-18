@@ -47,7 +47,7 @@ do CEMED no cabeçalho, no hero e no rodapé. Se adicionar a logo do CEMED em al
 lugar do site, lembre-se de colocar a do CONEM ao lado também.
 
 ### 3. `index.html`
-Procure por `<!-- SUBSTITUA AQUI -->` para encontrar:
+Possível encontrar:
 - Data e local do evento (seção Hero)
 - Texto institucional "Sobre" da edição XII
 - E-mail e telefone de contato geral (rodapé)
@@ -86,10 +86,3 @@ configurado usando o FormSubmit, um serviço gratuito de encaminhamento de formu
 O participante só vê a mensagem "Seu trabalho foi enviado com sucesso!" na tela, sem
 ver o e-mail de destino. Se preferir usar outro serviço (Formspree, Web3Forms) ou um
 backend próprio no futuro, basta trocar a URL em `CONFIG.SUBMISSION_ENDPOINT`.
-
-## Tema claro/escuro
-
-O botão de sol/lua no cabeçalho alterna o tema e guarda a preferência do visitante
-no navegador (assim ele não precisa escolher de novo a cada visita). A paleta usa os
-tons de verde da logo do CEMED tanto no modo claro (fundo claro tipo pergaminho) quanto
-no escuro (verde-preto profundo).

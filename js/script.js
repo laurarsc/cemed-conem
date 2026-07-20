@@ -608,7 +608,7 @@ form.addEventListener("submit", (e) => {
   form.target = "formsubmit-target";
 
   // Campos auxiliares para o e-mail chegar organizado no FormSubmit
-  addHiddenField(form, "_subject", `Novo trabalho científico — XII CEMED: ${document.getElementById("fTitulo")?.value || ""}`);
+  addHiddenField(form, "_subject", `Novo trabalho científico — XII CEMED: ${form.titulo?.value || ""}`);
   addHiddenField(form, "_captcha", "false");
   addHiddenField(form, "_template", "table");
 
@@ -691,7 +691,7 @@ function renumberAuthorRows() {
   rows.forEach((row, i) => {
     const authorNumber = i + 2; // autor 1 é o campo "Nome completo"
     const input = row.querySelector("input");
-    input.name = `Autor ${authorNumber}`;
+    input.name = `autor_${authorNumber}`;
     input.placeholder = `Nome do autor ${authorNumber}`;
   });
 }

@@ -9,7 +9,7 @@
 const CONFIG = {
   // Link oficial de inscrições (Sympla, Even3, Eventbrite, etc.)
   // SUBSTITUA AQUI pelo link real da plataforma de inscrição/pagamento.
-  REGISTRATION_URL: "https://SUBSTITUA-AQUI-PELO-LINK-DE-INSCRICAO.com.br",
+  REGISTRATION_URL: "https://cheers.com.br/evento/xii-cemed-conem-2026-33876",
 
   // Endpoint de envio do formulário de trabalhos científicos.
   // Usa o serviço gratuito FormSubmit (https://formsubmit.co) — sem backend.
@@ -506,7 +506,7 @@ mainNav.querySelectorAll("a").forEach(link => {
 // ======================= Botão de inscrição =======================
 document.getElementById("registrationBtn").setAttribute("href", CONFIG.REGISTRATION_URL);
 
-// ======================= Formulário de trabalhos científicos =======================
+
 // ======================= Formulário de trabalhos científicos =======================
 const DRAFT_KEY = "cemed-submissao-rascunho";
 const form = document.getElementById("submissionForm");

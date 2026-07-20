@@ -220,13 +220,15 @@ const PARTNERS = [
     name: "Parceiro Acadêmico",
     file: "partner-verde.png",
     url: "https://www.instagram.com/camma.medpuc",
-    description: "Texto breve sobre a instituição/liga acadêmica — edite aqui com a descrição real."
+    description: "O Centro Acadêmico de Medicina Mário de Abreu (CAMMA), vinculado à Escola de Medicina e Ciências da Vida da Pontifícia Universidade Católica do Paraná (PUCPR), inspira-se no lema da Universidade — Scientia, Vita et Fides (Ciência, Vida e Fé) — para promover a integração, a representatividade e o desenvolvimento da comunidade acadêmica.\n" +
+        "Com 30 anos de tradição, o CAMMA compromete-se com as necessidades dos alunos e busca promover conhecimento, bem-estar e oportunidades de forma ampla e irrestrita.\n" +
+        "Dirigido por estudantes e para estudantes, o CAMMA tem como essência a construção de um corpo estudantil que, embora diverso, permanece leal e unido em prol dos interesses da comunidade acadêmica."
   },
   {
     name: "ALMED-BR",
     file: "partner-almed.png",
     url: "https://www.aemedbr.com.br/",
-    description: "Texto breve sobre a ALMED-BR — edite aqui com a descrição real."
+    description: "A AEMED-BR estabelece um compromisso sério em representar os estudantes de Medicina do Brasil, garantindo que os acadêmicos tenham voz ativa dentro dos ambientes de discussão e deliberação no ambiente nacional. Nossa diretriz é a defesa da excelência do ensino médico em sua totalidade, preservando e estimulando o resgate aos princípios e valores que norteiam a boa medicina desde os seus primórdios. A associação visa a integração dos estudantes das diferentes regiões do país, em busca da formação médica de qualidade, intermediando os interesses da classe estudantil junto aos agentes públicos e privados. Acreditamos que o estabelecimento de um elo de cooperação entre os estudantes, entidades médicas, sociedades de especialidades e autoridades governamentais constituídas seja fundamental para que a voz acadêmica seja ouvida, de forma séria, responsável e com intenção de construção de um futuro melhor."
   },
 ];
 // ======================= CARDS: geração e modal =======================

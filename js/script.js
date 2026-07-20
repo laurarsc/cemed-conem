@@ -560,8 +560,18 @@ function validarTermoSubmissao() {
   return true;
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+// Iframe oculto que recebe a resposta do FormSubmit sem navegar a página.
+let formSubmitTargetIframe = document.querySelector('iframe[name="formsubmit-target"]');
+if (!formSubmitTargetIframe) {
+  formSubmitTargetIframe = document.createElement("iframe");
+  formSubmitTargetIframe.name = "formsubmit-target";
+  formSubmitTargetIframe.style.display = "none";
+  document.body.appendChild(formSubmitTargetIframe);
+}
+
+let formSubmitted = false;
+
+form.addEventListener("submit", (e) => {
   formStatus.textContent = "";
   formStatus.className = "form-status";
 
@@ -571,6 +581,7 @@ form.addEventListener("submit", async (e) => {
   const isDocx = file && /\.docx$/i.test(file.name);
 
   if(!file || !isDocx){
+    e.preventDefault();
     formStatus.textContent = "O arquivo precisa estar no formato .docx. Selecione o arquivo correto e tente novamente.";
     formStatus.classList.add("is-error");
     showToast("Envio não realizado: o arquivo precisa ser .docx.", "error");
@@ -580,46 +591,60 @@ form.addEventListener("submit", async (e) => {
 
   // Validação: termo de submissão precisa estar confirmado
   if (!validarTermoSubmissao()) {
+    e.preventDefault();
     return;
   }
 
+  // A partir daqui, deixamos o navegador enviar o formulário de verdade
+  // (submit nativo, sem fetch) para o endpoint SEM /ajax/, porque o
+  // endpoint AJAX do FormSubmit não processa uploads de arquivo de
+  // forma confiável. Miramos um iframe oculto para a página não navegar.
   submitBtn.disabled = true;
   submitBtn.querySelector(".btn-label").textContent = "Enviando...";
 
-  const formData = new FormData(form);
+  form.action = CONFIG.SUBMISSION_ENDPOINT.replace("/ajax", "");
+  form.method = "POST";
+  form.enctype = "multipart/form-data";
+  form.target = "formsubmit-target";
+
   // Campos auxiliares para o e-mail chegar organizado no FormSubmit
-  formData.append("_subject", `Novo trabalho científico — XII CEMED: ${formData.get("titulo") || ""}`);
-  formData.append("_captcha", "false");
-  formData.append("_template", "table");
+  addHiddenField(form, "_subject", `Novo trabalho científico — XII CEMED: ${document.getElementById("fTitulo")?.value || ""}`);
+  addHiddenField(form, "_captcha", "false");
+  addHiddenField(form, "_template", "table");
 
-  try {
-    const response = await fetch(CONFIG.SUBMISSION_ENDPOINT, {
-      method: "POST",
-      headers: { "Accept": "application/json" },
-      body: formData,
-    });
-
-    if(response.ok){
-      formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
-      formStatus.classList.add("is-success");
-      showToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
-      form.reset();
-      clearDraft();
-      extraAuthorsContainer.innerHTML = "";
-      updateAddButtonState();
-      syncAuthorSelects();
-    } else {
-      throw new Error("Falha no envio");
-    }
-  } catch (err) {
-    formStatus.textContent = "Não foi possível enviar agora. Tente novamente em instantes ou envie por e-mail para cientifico.conem@gmail.com.";
-    formStatus.classList.add("is-error");
-    showToast("Não foi possível enviar seu trabalho. Tente novamente.", "error");
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
-  }
+  formSubmitted = true;
+  // Sem e.preventDefault() aqui: o form.submit() nativo acontece,
+  // mas a resposta cai dentro do iframe oculto, sem navegar a página.
 });
+
+// Quando o iframe termina de carregar a resposta do FormSubmit,
+// tratamos como envio concluído.
+formSubmitTargetIframe.addEventListener("load", () => {
+  if (!formSubmitted) return; // ignora o load inicial (about:blank)
+
+  formSubmitted = false;
+  formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
+  formStatus.classList.add("is-success");
+  showToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
+  form.reset();
+  clearDraft();
+  extraAuthorsContainer.innerHTML = "";
+  updateAddButtonState();
+  syncAuthorSelects();
+  submitBtn.disabled = false;
+  submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
+});
+
+function addHiddenField(form, name, value) {
+  let input = form.querySelector(`input[name="${name}"]`);
+  if (!input) {
+    input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    form.appendChild(input);
+  }
+  input.value = value;
+}
 
 const addAuthorBtn = document.getElementById("addAuthorBtn");
 const extraAuthorsContainer = document.getElementById("extraAuthors");
@@ -666,7 +691,7 @@ function renumberAuthorRows() {
   rows.forEach((row, i) => {
     const authorNumber = i + 2; // autor 1 é o campo "Nome completo"
     const input = row.querySelector("input");
-    input.name = `autor_${authorNumber}`;
+    input.name = `Autor ${authorNumber}`;
     input.placeholder = `Nome do autor ${authorNumber}`;
   });
 }
@@ -723,7 +748,6 @@ document.getElementById("fName").addEventListener("input", syncAuthorSelects);
 
 // atualiza sempre que um autor extra for digitado (delegação de evento)
 extraAuthorsContainer.addEventListener("input", syncAuthorSelects);
-
 /* =====================================================================
    Rascunho automático — salva os campos no localStorage para não perder
    nada se o envio falhar, a página recarregar ou fechar sem querer.

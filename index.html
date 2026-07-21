@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XII CEMED — Congresso dos Estudantes de Medicina da PUCPR</title>
-  <meta name="description" content="XII CEMED — Congresso dos Estudantes de Medicina da PUCPR. Inscrições e submissão de trabalhos científicos.">
-  <link rel="icon" href="assets/logo-light.png" type="image/png">
+  <title>XII CEMED + IV CONEM </title>
+  <meta name="description" content="XII CEMED + IV CONEM. Inscrições e submissão de trabalhos científicos.">
+<!--  <link rel="icon" href="assets/logo-light.png" type="image/png">-->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -188,7 +188,7 @@
         <strong>Clique aqui para acessar o edital:</strong>
       </p>
 
-      <form class="submission-form" id="submissionForm" novalidate>
+      <form id="submissionForm" enctype="multipart/form-data" target="formsubmit-target">
         <!--
           SUBSTITUA AQUI, SE QUISER:
           - o e-mail de destino está centralizado em js/script.js -> CONFIG.SUBMISSION_ENDPOINT
@@ -200,7 +200,7 @@
           <div class="form-field field-nome">
             <label for="fName">Nome do Autor (adicione todos os autores)</label>
             <div class="author-input-row">
-              <input type="text" id="fName" name="nome" required autocomplete="name">
+              <input type="text" id="fName" name="autor" required autocomplete="name">
               <button type="button" class="btn-add-author" id="addAuthorBtn" aria-label="Adicionar autor">+</button>
             </div>
           </div>

@@ -62,15 +62,15 @@
       </div>
 
       <p class="hero-lede">
-        Três dias dedicados à ciência, à prática, e ao encontro de quem está formando a próxima geração da medicina.
+        Três dias dedicados à ciência, à prática e ao encontro de quem está formando a próxima geração da medicina.
         Palestras, mesas-redondas, rodas de conversa, atualizações, workshops e sessões de trabalhos científicos.
-        Resgate a essência da medicina enquanto contribui para o seu futuro.
+        Um resgate a essência da medicina contribuindo para o seu futuro.
       </p>
 
       <div class="hero-meta">
         <div class="hero-meta-item">
           <span class="hero-meta-label">Data</span>
-          <span class="hero-meta-value">14, 15 e 16 de outubro, 2026</span>
+          <span class="hero-meta-value">14, 15 e 16 de outubro de 2026</span>
         </div>
         <div class="hero-meta-divider" aria-hidden="true"></div>
         <div class="hero-meta-item">
@@ -98,7 +98,7 @@
   <section class="section programacao" id="sobre">
     <div class="section-inner">
       <span class="section-eyebrow">I. Sobre</span>
-      <h2 class="section-title">Um congresso construído por quem estuda Medicina, para quem estuda Medicina</h2>
+      <h2 class="section-title">Um Congresso de medicina feito por estudantes para estudantes</h2>
       <div class="about-grid">
         <p class="about-text">
           O Congresso dos Estudantes de Medicina da PUCPR (CEMED) é um evento anual organizado pelo Centro Acadêmico de Medicina Mário de Abreu (CAMMA). Ao longo de mais de uma década, com o apoio da Escola de Medicina e Ciências da Vida, o evento se consolidou como um espaço de conexão entre os estudantes do curso, com foco no desenvolvimento de habilidades médicas e acadêmicas.
@@ -137,7 +137,6 @@
       <span class="section-eyebrow">II. Programação</span>
       <h2 class="section-title">O que te espera no XII CEMED  +  IV CONEM</h2>
       <p class="section-lede">Abra cada atividade para ver detalhes de horário, local e convidados. <!-- SUBSTITUA AQUI: pode editar/adicionar quantos cards quiser em js/script.js --></p>
-
       <div class="card-grid" id="cardGrid"><!-- gerado via js/script.js a partir de PROGRAM_DATA --></div>
     </div>
   </section>
@@ -148,10 +147,9 @@
   <section class="section section-alt programacao" id="calendario">
     <div class="section-inner">
       <span class="section-eyebrow">III. Calendário</span>
-      <h2 class="section-title">Calendário do congresso</h2>
+      <h2 class="section-title">Calendário do Congresso</h2>
       <p class="section-lede">
-        Toque em um dia para ver as atividades disponíveis. Toque em uma atividade para
-        abrir os detalhes e garantir sua vaga.
+        Toque em um dia para ver as atividades disponíveis.>Toque em uma atividade para abrir os detalhes e garantir sua vaga.
         <!-- SUBSTITUA AQUI: os eventos de cada dia estão em js/script.js -> CALENDAR_EVENTS -->
       </p>
 
@@ -186,6 +184,11 @@
         Envie o resumo em arquivo <strong>.docx</strong>. Ao enviar, seu trabalho é encaminhado diretamente para
         cientifico.conem@gmail.com e você recebe a confirmação aqui na tela.
         <strong>Clique aqui para acessar o edital:</strong>
+      </p>
+      <p class="section-edital">
+        <a href="assets/CONEM%202026.pdf" target="_blank" rel="noopener" style="color: var(--brand-strong); font-weight: 700; margin-bottom: 30px; text-decoration: underline;">
+          Edital Trabalhos Científicos
+        </a>.
       </p>
 
       <form id="submissionForm" enctype="multipart/form-data" target="formsubmit-target">
@@ -250,8 +253,7 @@
           <label for="fTitulo">Título do trabalho</label>
           <input type="text" id="fTitulo" name="titulo" required>
         </div>
-
-        <div class="form-field">
+        <div class="form-field" style="margin-top: 1rem; margin-bottom: 1rem;'">
           <label for="fResumo">Resumo</label>
           <textarea id="fResumo" name="resumo" rows="7" required placeholder="Introdução, objetivos, métodos, resultados e conclusão."></textarea>
         </div>
@@ -281,15 +283,20 @@
             </svg>
           </button>
         </div>
-
-
-
-
+        <div class="terms-field" id="congress-field" style="margin-bottom: 1rem">
+          <label class="terms-checkbox-label">
+            <input type="checkbox" id="congress-checkbox" name="congress-checkbox">
+            <span class="terms-text">
+          Confirmo que o trabalho acima submetido não foi apresentado ou publicado em nenhum outro evento, congresso ou revista, sendo sua submissão de caráter inédito. <br>
+           </span>
+          </label>
+        </div>
+        <div class="form-field">
         <button type="submit" class="btn btn-primary btn-wide" id="submitBtn">
           <span class="btn-label">Enviar trabalho</span>
         </button>
-
         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        </div>
       </form>
       <iframe name="formsubmit-target" style="display:none"></iframe>
     </div>
@@ -301,10 +308,10 @@
   <section class="section section-alt programacao" id="parceiros">
     <div class="section-inner">
       <span class="section-eyebrow">V. Parceiros</span>
-      <h2 class="section-title">Quem apoia o XII CEMED x IV CONEM</h2>
+      <h2 class="section-title">Quem apoia o XII CEMED + IV CONEM</h2>
       <p class="section-lede">
         <!-- SUBSTITUA AQUI: troque os arquivos em assets/partners/ e edite a lista PARTNERS em js/script.js -->
-        Instituições e marcas que tornam o congresso possível.
+        Instituições que tornam o congresso possível.
       </p>
       <div class="partners-grid" id="partnersGrid"><!-- gerado via js/script.js a partir de PARTNERS --></div>
     </div>
@@ -317,7 +324,7 @@
     <div class="section-inner">
       <!--      <div class="cta-arch" aria-hidden="true"></div>-->
       <span class="section-eyebrow section-eyebrow-invert">VI. Inscrição</span>
-      <h2 class="section-title section-title-invert">Garanta sua vaga no XII CEMED</h2>
+      <h2 class="section-title section-title-invert">Garanta sua vaga no XII CEMED + IV CONEM</h2>
       <p class="section-lede section-lede-invert">
         As inscrições são feitas em nossa plataforma oficial de eventos.
         <!-- SUBSTITUA AQUI: o link de inscrição está centralizado em js/script.js -> CONFIG.REGISTRATION_URL -->
@@ -346,16 +353,15 @@
     <div class="footer-col">
       <h3>Contato</h3>
       <ul>
-        <li><!-- SUBSTITUA AQUI: e-mail de contato geral -->contato@camma.com.br</li>
-        <li>secretaria@aemedbr.com.br</li>
-        <li>PUCPR, bloco 6 - R. Imac. Conceição, 1155 - Prado Velho, Curitiba</li>
+        <li>contato@camma.com.br</li>
+        <li>aemedlive@gmail.com</li>
+        <li>PUCPR, Bloco 6 - R. Imac. Conceição, 1155 - Prado Velho, Curitiba, PR - CEP: 80215-901</li>
       </ul>
     </div>
 
     <div class="footer-col">
       <h3>Redes sociais</h3>
       <ul>
-        <!-- SUBSTITUA AQUI: links das redes sociais -->
         <li><a href="https://www.instagram.com/camma.medpuc" target="_blank" rel="noopener">Instagram - CEMED</a></li>
         <li><a href="https://www.instagram.com/conem.br?igsh=Y2VuNmkzeHZ2aHlw" target="_blank" rel="noopener">Instagram - CONEM</a></li>
 
@@ -395,7 +401,10 @@
 
 <!-- Toast de confirmação de envio -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="text/javascript">
+  emailjs.init({ publicKey: "3D8g7Y6btc6fsMKfB" });
+</script>
 <script src="js/script.js"></script>
 </body>
 </html>

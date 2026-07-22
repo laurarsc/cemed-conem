@@ -15,7 +15,7 @@
   --parchment-2:   #efe9da;
   --ink:           #16251a;
   --ink-soft:      #46564a;
-  --gold:          #b8934a;
+  --gold: #0d1712;
 
   /* azul-marinho — herdado da identidade do CONEM, parceiro do congresso */
   --navy-deep:     #0e1a3a;
@@ -123,6 +123,7 @@ input, select, textarea{ font: inherit; }
   margin-bottom: .9rem;
   padding-bottom: .4rem;
   border-bottom: 2px solid var(--brand);
+  text-align: justify;
 }
 .section-eyebrow-invert{ color: rgba(255,255,255,.85); border-color: rgba(255,255,255,.5); }
 
@@ -135,10 +136,14 @@ input, select, textarea{ font: inherit; }
 }
 .section-title-invert{ color: #fff; }
 
+.section-edital{
+  margin-bottom: 1.3rem;
+}
+
 .section-lede{
   font-size: clamp(1rem, 2.4vw, 1.08rem);
   color: var(--text-soft);
-  max-width: 62ch;
+  max-width: 120ch;
   line-height: 1.7;
 }
 .section-lede-invert{ color: rgba(255,255,255,.82); }
@@ -177,8 +182,7 @@ html[data-theme="dark"] .logo-for-dark{ display: block; }
   color: var(--brand-strong);
   border-color: var(--brand-strong);
 }
-html[data-theme="dark"] .btn-outline{ color: var(--brand-bright); border-color: var(--brand-bright); }
-.btn-outline:hover{ background: var(--brand-strong); color: #fff; }
+.btn-outline:hover{ background: var(--brand-strong); color: #ffffff; }
 .btn-invert{
   background: #fff;
   color: var(--forest-deep);
@@ -354,8 +358,8 @@ html[data-theme="dark"] .eyebrow{ color: var(--brand-bright); }
 /* =====================================================================
    Sobre
    ===================================================================== */
-.about-grid{ display: grid; gap: 1.4rem; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
-.about-text{ font-size: 1.05rem; color: var(--text-soft); line-height: 1.8; }
+.about-grid{ display: grid; gap: 3.4rem; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.about-text{ font-size: 1.05rem; color: var(--text-soft); line-height: 1.8; text-align: justify}
 .about-stats{ grid-column: 1 / -1; display: flex; gap: clamp(1.5rem, 5vw, 4rem); margin-top: 1rem; flex-wrap: wrap; }
 .stat{ display: flex; flex-direction: column; gap: .2rem; }
 .stat-number{ font-family: var(--font-display); font-size: clamp(1.9rem, 6vw, 2.4rem); font-weight: 700; color: var(--brand-strong); }
@@ -700,6 +704,10 @@ html[data-theme="dark"] .form-status.is-success{ color: var(--brand-bright); }
   .card-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+.terms-field{
+  margin: 1.5rem;
+}
+
 /* =====================================================================
    Seção de inscrição (CTA)
    ===================================================================== */
@@ -887,6 +895,13 @@ html[data-theme="dark"] .toast.is-success{
     gap: 1rem;
     margin-bottom: 1.5rem;
     margin-top: 1.5rem;
+    text-align: justify;
+
+    /* 1. Ativa a hifenização automática (ajuda a quebrar as palavras nas bordas) */
+    hyphens: auto;
+
+    /* 2. Melhora a distribuição das quebras de linha no parágrafo */
+    text-wrap: pretty;
   }
   .partnership-logo-1{ height: 165px; margin: 0 auto; }
   .partnership-logo-2{ height: 112px; margin: 0 auto; }

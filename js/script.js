@@ -547,6 +547,19 @@ if (termsCheckbox && termsToggleBtn && termsTextExtra && termsField) {
   console.warn("Bloco de termos de submissão não encontrado no HTML (verifique os IDs: aceite-termos, terms-toggle-btn, terms-text-extra, terms-field).");
 }
 
+const congressCheckbox = document.getElementById("congress-checkbox");
+const congressField    = document.getElementById("congress-field");
+
+if (congressCheckbox && congressField) {
+  congressCheckbox.addEventListener("change", () => {
+    if (congressCheckbox.checked){
+      congressField.classList.remove("has-error");
+    }
+  });
+} else {
+  console.warn("Bloco de confirmação de ineditismo não encontrado no HTML (verifique os IDs: congress-checkbox, congress-field).");
+}
+
 function validarTermoSubmissao() {
   // Se o bloco de termos não existir na página, não bloqueia o envio.
   if (!termsCheckbox) return true;
@@ -555,6 +568,18 @@ function validarTermoSubmissao() {
     showToast("Você precisa confirmar os termos de submissão antes de enviar.", "error");
     termsField.classList.add("has-error");
     termsField.scrollIntoView({ behavior: "smooth", block: "center" });
+    return false;
+  }
+  return true;
+}
+
+function validarCongressoSubmissao() {
+  if (!congressCheckbox) return true;
+
+  if (!congressCheckbox.checked) {
+    showToast("Você precisa confirmar que o trabalho é inédito antes de enviar.", "error");
+    congressField.classList.add("has-error");
+    congressField.scrollIntoView({ behavior: "smooth", block: "center" });
     return false;
   }
   return true;
@@ -594,6 +619,17 @@ form.addEventListener("submit", (e) => {
     e.preventDefault();
     return;
   }
+  // Validação: termo de submissão precisa estar confirmado
+  if (!validarTermoSubmissao()) {
+    e.preventDefault();
+    return;
+  }
+
+  // Validação: confirmação de ineditismo precisa estar marcada
+  if (!validarCongressoSubmissao()) {
+    e.preventDefault();
+    return;
+  }
 
   // A partir daqui, deixamos o navegador enviar o formulário de verdade
   // (submit nativo, sem fetch) para o endpoint SEM /ajax/, porque o
@@ -620,9 +656,22 @@ form.addEventListener("submit", (e) => {
 // Quando o iframe termina de carregar a resposta do FormSubmit,
 // tratamos como envio concluído.
 formSubmitTargetIframe.addEventListener("load", () => {
-  if (!formSubmitted) return; // ignora o load inicial (about:blank)
+  console.log("[DEBUG] iframe load disparou. formSubmitted =", formSubmitted);
+
+  if (!formSubmitted) {
+    console.log("[DEBUG] formSubmitted era false, saindo sem fazer nada.");
+    return;
+  }
 
   formSubmitted = false;
+  console.log("[DEBUG] passou da checagem, vai capturar os dados do participante");
+
+  const nomeParticipante = document.getElementById("fName").value;
+  const emailParticipante = document.getElementById("fEmail").value;
+  const tituloTrabalho = document.getElementById("fTitulo").value;
+
+  console.log("[DEBUG] dados capturados:", { nomeParticipante, emailParticipante, tituloTrabalho });
+
   formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
   formStatus.classList.add("is-success");
   showToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
@@ -633,6 +682,21 @@ formSubmitTargetIframe.addEventListener("load", () => {
   syncAuthorSelects();
   submitBtn.disabled = false;
   submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
+
+  if (emailParticipante) {
+    console.log("[DEBUG] email presente, chamando emailjs.send agora...");
+    emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
+      to_email: emailParticipante,
+      to_name: nomeParticipante,
+      titulo: tituloTrabalho,
+    }).then((res) => {
+      console.log("[DEBUG] emailjs.send SUCESSO:", res);
+    }).catch((err) => {
+      console.warn("[DEBUG] emailjs.send FALHOU:", err);
+    });
+  } else {
+    console.log("[DEBUG] emailParticipante estava vazio, não chamou emailjs.send");
+  }
 });
 
 function addHiddenField(form, name, value) {
@@ -769,6 +833,7 @@ function coletarRascunho() {
     apresentador: fApresentador.value,
     correspondente: fCorrespondente.value,
     aceiteTermos: termsCheckbox ? termsCheckbox.checked : false,
+    aceiteCongresso: congressCheckbox ? congressCheckbox.checked : false,
     autoresExtras,
   };
 }
@@ -807,6 +872,8 @@ function restaurarRascunho() {
     return;
   }
   if (!raw) return;
+  if (termsCheckbox) termsCheckbox.checked = !!dados.aceiteTermos;
+  if (congressCheckbox) congressCheckbox.checked = !!dados.aceiteCongresso;
 
   let dados;
   try {
@@ -845,3 +912,38 @@ function restaurarRascunho() {
 }
 
 restaurarRascunho();
+
+formSubmitTargetIframe.addEventListener("load", () => {
+  if (!formSubmitted) return; // ignora o load inicial (about:blank)
+
+  formSubmitted = false;
+
+  // Captura os dados ANTES do form.reset(), pra usar no e-mail de confirmação
+  const nomeParticipante = document.getElementById("fName").value;
+  const emailParticipante = document.getElementById("fEmail").value;
+  const tituloTrabalho = document.getElementById("fTitulo").value;
+
+  formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
+  formStatus.classList.add("is-success");
+  showToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
+  form.reset();
+  clearDraft();
+  extraAuthorsContainer.innerHTML = "";
+  updateAddButtonState();
+  syncAuthorSelects();
+  submitBtn.disabled = false;
+  submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
+
+  // Envia o e-mail de confirmação ao participante via EmailJS
+  if (emailParticipante) {
+    emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
+      to_email: emailParticipante,
+      to_name: nomeParticipante,
+      titulo: tituloTrabalho,
+    }).catch((err) => {
+      console.warn("Não foi possível enviar o e-mail de confirmação:", err);
+      // Falha silenciosa: o trabalho já foi enviado ao FormSubmit normalmente,
+      // só o e-mail de cortesia ao participante que pode não ter saído.
+    });
+  }
+});

@@ -35,7 +35,7 @@ const PROGRAM_DATA = [
     numeral: "II",
     tag: "Palestra Magna",
     title: "Palestras Magnas",
-    teaser: "Grandes nomes da Medicina brasileira discutindo os temas mais atuais da prática clínica: <strong>Celmo Porto</strong> e <strong> Paulo Muzy</strong>.",
+    teaser: "Grandes nomes da Medicina brasileira discutindo os temas mais atuais da prática clínica",
     meta: "Dias 1 a 3 · Auditório Principal",
     body: "."
   },

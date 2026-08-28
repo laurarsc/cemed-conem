@@ -999,6 +999,35 @@ html[data-theme="dark"] .toast.is-success{
   gap: 8px;
 }
 
+select {
+  /* Remove a aparência nativa do sistema operacional */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Estilos visuais para combinar com o seu tema escuro */
+  background-color: #111f19; /* Ajuste para o tom escuro do seu input */
+  color: #ffffff;
+  border: 1px solid #1e3a2f; /* Exemplo de borda sutil */
+  border-radius: 6px;
+  padding: 10px 40px 10px 14px; /* Espaço à direita para a seta personalizada */
+  font-size: 14px;
+  width: 100%;
+  cursor: pointer;
+
+  /* Adiciona uma seta customizada via SVG no fundo */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* Remove o foco padrão feio no Safari/Chrome e coloca uma borda elegante */
+select:focus {
+  outline: none;
+  border-color: #2e6f40; /* Cor de destaque (ex: verde do seu site) */
+}
+
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;

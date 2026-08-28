@@ -872,8 +872,6 @@ function restaurarRascunho() {
     return;
   }
   if (!raw) return;
-  if (termsCheckbox) termsCheckbox.checked = !!dados.aceiteTermos;
-  if (congressCheckbox) congressCheckbox.checked = !!dados.aceiteCongresso;
 
   let dados;
   try {
@@ -947,3 +945,389 @@ formSubmitTargetIframe.addEventListener("load", () => {
     });
   }
 });
+
+// ======================= Formulário de submissões artísticas =======================
+// Este bloco usa IDs próprios (prefixo "art") para conviver na mesma página com o
+// formulário de trabalhos científicos, sem conflito de nomes.
+//
+// IMPORTANTE: defina o endpoint de destino em js/script.js, dentro do objeto CONFIG:
+//   CONFIG.ART_SUBMISSION_ENDPOINT = "https://formsubmit.co/artistico.conem@gmail.com"
+// (ou o e-mail que você quiser usar para receber as submissões artísticas)
+//
+// Todo o código abaixo roda dentro de DOMContentLoaded para garantir que os
+// elementos da seção já existam na página, não importa onde a tag <script>
+// foi colocada (head, antes da seção, etc.).
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const ART_DRAFT_KEY = "cemed-submissao-artistica-rascunho";
+  const artForm = document.getElementById("artSubmissionForm");
+  const artSubmitBtn = document.getElementById("artSubmitBtn");
+  const artFormStatus = document.getElementById("artFormStatus");
+
+  function showArtToast(message, type) {
+    if (typeof showToast === "function") {
+      // reaproveita o toast já existente na página, se houver
+      showToast(message, type);
+      return;
+    }
+    console.log(`[toast:${type}]`, message);
+  }
+
+  const artTermsCheckbox  = document.getElementById("art-aceite-termos");
+  const artTermsToggleBtn = document.getElementById("art-terms-toggle-btn");
+  const artTermsTextExtra = document.getElementById("art-terms-text-extra");
+  const artTermsField     = document.getElementById("art-terms-field");
+
+  if (artTermsCheckbox && artTermsToggleBtn && artTermsTextExtra && artTermsField) {
+    artTermsToggleBtn.addEventListener("click", () => {
+      const expanded = artTermsTextExtra.classList.toggle("is-expanded");
+      artTermsToggleBtn.classList.toggle("is-expanded", expanded);
+      artTermsToggleBtn.firstChild.textContent = expanded ? "Ler menos " : "Ler mais ";
+    });
+
+    artTermsCheckbox.addEventListener("change", () => {
+      if (artTermsCheckbox.checked) {
+        artTermsField.classList.remove("has-error");
+      }
+    });
+  } else {
+    console.warn("Bloco de termos da submissão artística não encontrado no HTML (verifique os IDs: art-aceite-termos, art-terms-toggle-btn, art-terms-text-extra, art-terms-field).");
+  }
+
+  const artCongressCheckbox = document.getElementById("art-congress-checkbox");
+  const artCongressField    = document.getElementById("art-congress-field");
+
+  if (artCongressCheckbox && artCongressField) {
+    artCongressCheckbox.addEventListener("change", () => {
+      if (artCongressCheckbox.checked) {
+        artCongressField.classList.remove("has-error");
+      }
+    });
+  } else {
+    console.warn("Bloco de confirmação de ineditismo (artístico) não encontrado no HTML (verifique os IDs: art-congress-checkbox, art-congress-field).");
+  }
+
+  function validarTermoSubmissaoArt() {
+    if (!artTermsCheckbox) return true;
+    if (!artTermsCheckbox.checked) {
+      showArtToast("Você precisa confirmar os termos de submissão antes de enviar.", "error");
+      artTermsField.classList.add("has-error");
+      artTermsField.scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
+    }
+    return true;
+  }
+
+  function validarCongressoSubmissaoArt() {
+    if (!artCongressCheckbox) return true;
+    if (!artCongressCheckbox.checked) {
+      showArtToast("Você precisa confirmar que a obra é inédita antes de enviar.", "error");
+      artCongressField.classList.add("has-error");
+      artCongressField.scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
+    }
+    return true;
+  }
+
+// Iframe oculto que recebe a resposta do FormSubmit sem navegar a página.
+  let artFormSubmitTargetIframe = document.querySelector('iframe[name="artformsubmit-target"]');
+  if (!artFormSubmitTargetIframe) {
+    artFormSubmitTargetIframe = document.createElement("iframe");
+    artFormSubmitTargetIframe.name = "artformsubmit-target";
+    artFormSubmitTargetIframe.style.display = "none";
+    document.body.appendChild(artFormSubmitTargetIframe);
+  }
+
+  let artFormSubmitted = false;
+
+  artForm.addEventListener("submit", (e) => {
+    artFormStatus.textContent = "";
+    artFormStatus.className = "form-status";
+
+    // Validação: precisa ter arquivo OU link preenchido
+    const fileInput = document.getElementById("artArquivo");
+    const linkInput = document.getElementById("artLink");
+    const hasFile = fileInput.files && fileInput.files.length > 0;
+    const hasLink = linkInput.value.trim().length > 0;
+
+    if (!hasFile && !hasLink) {
+      e.preventDefault();
+      artFormStatus.textContent = "Anexe um arquivo ou informe um link para a obra.";
+      artFormStatus.classList.add("is-error");
+      showArtToast("Envio não realizado: anexe um arquivo ou informe um link.", "error");
+      fileInput.focus();
+      return;
+    }
+
+    // Validação: termo de submissão precisa estar confirmado
+    if (!validarTermoSubmissaoArt()) {
+      e.preventDefault();
+      return;
+    }
+
+    // Validação: confirmação de ineditismo precisa estar marcada
+    if (!validarCongressoSubmissaoArt()) {
+      e.preventDefault();
+      return;
+    }
+
+    // A partir daqui, deixamos o navegador enviar o formulário de verdade
+    // (submit nativo, sem fetch) mirando um iframe oculto para a página não navegar.
+    artSubmitBtn.disabled = true;
+    artSubmitBtn.querySelector(".btn-label").textContent = "Enviando...";
+
+    artForm.action = CONFIG.ART_SUBMISSION_ENDPOINT.replace("/ajax", "");
+    artForm.method = "POST";
+    artForm.enctype = "multipart/form-data";
+    artForm.target = "artformsubmit-target";
+
+    addHiddenFieldArt(artForm, "_subject", `Nova submissão artística — XII CEMED: ${artForm.titulo?.value || ""}`);
+    addHiddenFieldArt(artForm, "_captcha", "false");
+    addHiddenFieldArt(artForm, "_template", "table");
+
+    artFormSubmitted = true;
+  });
+
+  artFormSubmitTargetIframe.addEventListener("load", () => {
+    if (!artFormSubmitted) return; // ignora o load inicial (about:blank)
+
+    artFormSubmitted = false;
+
+    // Captura os dados ANTES do form.reset(), pra usar no e-mail de confirmação
+    const nomeParticipante = document.getElementById("artName").value;
+    const emailParticipante = document.getElementById("artEmail").value;
+    const tituloTrabalho = document.getElementById("artTitulo").value;
+
+    artFormStatus.textContent = "Sua obra foi enviada com sucesso!";
+    artFormStatus.classList.add("is-success");
+    showArtToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
+    artForm.reset();
+    clearArtDraft();
+    artExtraAuthorsContainer.innerHTML = "";
+    updateArtAddButtonState();
+    syncArtAuthorSelects();
+    artSubmitBtn.disabled = false;
+    artSubmitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
+
+    // Envia o e-mail de confirmação ao participante via EmailJS
+    // TODO: crie um template específico para submissões artísticas, se quiser um texto diferente
+    if (emailParticipante && typeof emailjs !== "undefined") {
+      emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
+        to_email: emailParticipante,
+        to_name: nomeParticipante,
+        titulo: tituloTrabalho,
+      }).catch((err) => {
+        console.warn("Não foi possível enviar o e-mail de confirmação (artístico):", err);
+      });
+    }
+  });
+
+  function addHiddenFieldArt(form, name, value) {
+    let input = form.querySelector(`input[name="${name}"]`);
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      form.appendChild(input);
+    }
+    input.value = value;
+  }
+
+  const artAddAuthorBtn = document.getElementById("artAddAuthorBtn");
+  const artExtraAuthorsContainer = document.getElementById("artExtraAuthors");
+  const ART_MAX_EXTRA_AUTHORS = 7;
+
+  artAddAuthorBtn.addEventListener("click", () => {
+    const currentRows = artExtraAuthorsContainer.querySelectorAll(".author-input-row").length;
+    if (currentRows >= ART_MAX_EXTRA_AUTHORS) {
+      showArtToast(`Você pode adicionar no máximo ${ART_MAX_EXTRA_AUTHORS} autores adicionais.`, "error");
+      return;
+    }
+
+    const row = document.createElement("div");
+    row.className = "author-input-row";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.autocomplete = "name";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn-remove-author";
+    removeBtn.setAttribute("aria-label", "Remover autor");
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      row.remove();
+      renumberArtAuthorRows();
+      updateArtAddButtonState();
+      syncArtAuthorSelects();
+    });
+
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    artExtraAuthorsContainer.appendChild(row);
+
+    renumberArtAuthorRows();
+    updateArtAddButtonState();
+    syncArtAuthorSelects();
+  });
+
+  function renumberArtAuthorRows() {
+    const rows = artExtraAuthorsContainer.querySelectorAll(".author-input-row");
+    rows.forEach((row, i) => {
+      const authorNumber = i + 2; // autor 1 é o campo "Nome completo"
+      const input = row.querySelector("input");
+      input.name = `autor_${authorNumber}`;
+      input.placeholder = `Nome do autor ${authorNumber}`;
+    });
+  }
+
+  function updateArtAddButtonState() {
+    const currentRows = artExtraAuthorsContainer.querySelectorAll(".author-input-row").length;
+    artAddAuthorBtn.disabled = currentRows >= ART_MAX_EXTRA_AUTHORS;
+  }
+
+  const artApresentador = document.getElementById("artApresentador");
+  const artCorrespondente = document.getElementById("artCorrespondente");
+
+  function getAllArtAuthorNames() {
+    const names = [];
+    const mainName = document.getElementById("artName").value.trim();
+    if (mainName) names.push(mainName);
+
+    artExtraAuthorsContainer.querySelectorAll("input").forEach((input) => {
+      const val = input.value.trim();
+      if (val) names.push(val);
+    });
+
+    return names;
+  }
+
+  function syncArtAuthorSelects() {
+    const names = getAllArtAuthorNames();
+
+    [artApresentador, artCorrespondente].forEach((select) => {
+      const previousValue = select.value;
+
+      select.innerHTML = '<option value="" disabled>Selecione</option>';
+
+      names.forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+
+      if (names.includes(previousValue)) {
+        select.value = previousValue;
+      } else {
+        select.value = "";
+        select.querySelector('option[value=""]').selected = true;
+      }
+    });
+  }
+
+  document.getElementById("artName").addEventListener("input", syncArtAuthorSelects);
+  artExtraAuthorsContainer.addEventListener("input", syncArtAuthorSelects);
+
+  /* =====================================================================
+     Rascunho automático — salva os campos no localStorage.
+     Obs.: o arquivo anexado NÃO pode ser salvo por segurança do navegador —
+     se a página recarregar, é preciso reanexar o arquivo (o link, se usado,
+     é salvo normalmente).
+     ===================================================================== */
+  function coletarRascunhoArt() {
+    const autoresExtras = Array.from(
+        artExtraAuthorsContainer.querySelectorAll(".author-input-row input")
+    ).map((input) => input.value);
+
+    return {
+      nome: document.getElementById("artName").value,
+      email: document.getElementById("artEmail").value,
+      instituicao: document.getElementById("artInstituicao").value,
+      categoria: document.getElementById("artCategoria").value,
+      titulo: document.getElementById("artTitulo").value,
+      descricao: document.getElementById("artDescricao").value,
+      link: document.getElementById("artLink").value,
+      apresentador: artApresentador.value,
+      correspondente: artCorrespondente.value,
+      aceiteTermos: artTermsCheckbox ? artTermsCheckbox.checked : false,
+      aceiteCongresso: artCongressCheckbox ? artCongressCheckbox.checked : false,
+      autoresExtras,
+    };
+  }
+
+  function salvarRascunhoArt() {
+    try {
+      localStorage.setItem(ART_DRAFT_KEY, JSON.stringify(coletarRascunhoArt()));
+    } catch (e) {
+      // localStorage indisponível — ignora
+    }
+  }
+
+  function clearArtDraft() {
+    try {
+      localStorage.removeItem(ART_DRAFT_KEY);
+    } catch (e) {
+      // ignora
+    }
+  }
+
+  let salvarRascunhoArtTimeout;
+  function agendarSalvarRascunhoArt() {
+    clearTimeout(salvarRascunhoArtTimeout);
+    salvarRascunhoArtTimeout = setTimeout(salvarRascunhoArt, 400);
+  }
+
+  artForm.addEventListener("input", agendarSalvarRascunhoArt);
+  artForm.addEventListener("change", agendarSalvarRascunhoArt);
+
+  function restaurarRascunhoArt() {
+    let raw;
+    try {
+      raw = localStorage.getItem(ART_DRAFT_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!raw) return;
+
+    let dados;
+    try {
+      dados = JSON.parse(raw);
+    } catch (e) {
+      return;
+    }
+
+    document.getElementById("artName").value = dados.nome || "";
+    document.getElementById("artEmail").value = dados.email || "";
+    document.getElementById("artInstituicao").value = dados.instituicao || "";
+    document.getElementById("artTitulo").value = dados.titulo || "";
+    document.getElementById("artDescricao").value = dados.descricao || "";
+    document.getElementById("artLink").value = dados.link || "";
+    if (dados.categoria) document.getElementById("artCategoria").value = dados.categoria;
+    if (artTermsCheckbox) artTermsCheckbox.checked = !!dados.aceiteTermos;
+    if (artCongressCheckbox) artCongressCheckbox.checked = !!dados.aceiteCongresso;
+
+    const autoresExtras = Array.isArray(dados.autoresExtras) ? dados.autoresExtras : [];
+    autoresExtras.forEach((_, i) => {
+      if (i < ART_MAX_EXTRA_AUTHORS) artAddAuthorBtn.click();
+    });
+    const linhas = artExtraAuthorsContainer.querySelectorAll(".author-input-row input");
+    linhas.forEach((input, i) => {
+      input.value = autoresExtras[i] || "";
+    });
+
+    syncArtAuthorSelects();
+    if (dados.apresentador) artApresentador.value = dados.apresentador;
+    if (dados.correspondente) artCorrespondente.value = dados.correspondente;
+
+    const temConteudo = dados.nome || dados.email || dados.titulo || dados.descricao || dados.link || autoresExtras.some(Boolean);
+    if (temConteudo) {
+      showArtToast("Continuamos de onde você parou — reanexe o arquivo, se tiver enviado um.", "success");
+    }
+  }
+
+  restaurarRascunhoArt();
+
+}); // fim do DOMContentLoaded

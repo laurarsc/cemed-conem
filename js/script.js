@@ -613,7 +613,14 @@ form.addEventListener("submit", (e) => {
     fileInput.focus();
     return;
   }
-
+  if (file && file.size > 5 * 1024 * 1024) {
+    e.preventDefault();
+    formStatus.textContent = "O arquivo excede o limite de 5MB. Reduza o tamanho do seu documento e tente novamente.";
+    formStatus.classList.add("is-error");
+    showToast("Envio não realizado: arquivo maior que 5MB.", "error");
+    fileInput.focus();
+    return;
+  }
   // Validação: termo de submissão precisa estar confirmado
   if (!validarTermoSubmissao()) {
     e.preventDefault();
@@ -1019,6 +1026,14 @@ document.addEventListener("DOMContentLoaded", function () {
       artFormStatus.textContent = "Anexe um arquivo ou informe um link para a obra.";
       artFormStatus.classList.add("is-error");
       showArtToast("Envio não realizado: anexe um arquivo ou informe um link.", "error");
+      fileInput.focus();
+      return;
+    }
+    if (file && file.size > 5 * 1024 * 1024) {
+      e.preventDefault();
+      artFormStatus.textContent = "O arquivo excede o limite de 5MB. Por favor, utilize um link externo (Drive/YouTube) para esta obra.";
+      artFormStatus.classList.add("is-error");
+      showArtToast("Envio não realizado: arquivo maior que 5MB.", "error");
       fileInput.focus();
       return;
     }

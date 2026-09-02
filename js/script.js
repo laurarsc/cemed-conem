@@ -619,11 +619,6 @@ form.addEventListener("submit", (e) => {
     e.preventDefault();
     return;
   }
-  // Validação: termo de submissão precisa estar confirmado
-  if (!validarTermoSubmissao()) {
-    e.preventDefault();
-    return;
-  }
 
   // Validação: confirmação de ineditismo precisa estar marcada
   if (!validarCongressoSubmissao()) {
@@ -656,21 +651,14 @@ form.addEventListener("submit", (e) => {
 // Quando o iframe termina de carregar a resposta do FormSubmit,
 // tratamos como envio concluído.
 formSubmitTargetIframe.addEventListener("load", () => {
-  console.log("[DEBUG] iframe load disparou. formSubmitted =", formSubmitted);
-
-  if (!formSubmitted) {
-    console.log("[DEBUG] formSubmitted era false, saindo sem fazer nada.");
-    return;
-  }
+  if (!formSubmitted) return; // ignora o load inicial (about:blank)
 
   formSubmitted = false;
-  console.log("[DEBUG] passou da checagem, vai capturar os dados do participante");
 
+  // Captura os dados ANTES do form.reset(), pra usar no e-mail de confirmação
   const nomeParticipante = document.getElementById("fName").value;
   const emailParticipante = document.getElementById("fEmail").value;
   const tituloTrabalho = document.getElementById("fTitulo").value;
-
-  console.log("[DEBUG] dados capturados:", { nomeParticipante, emailParticipante, tituloTrabalho });
 
   formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
   formStatus.classList.add("is-success");
@@ -683,19 +671,20 @@ formSubmitTargetIframe.addEventListener("load", () => {
   submitBtn.disabled = false;
   submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
 
-  if (emailParticipante) {
-    console.log("[DEBUG] email presente, chamando emailjs.send agora...");
+  // Envia o e-mail de confirmação ao participante via EmailJS.
+  // "tipo_submissao" é usado no template do EmailJS para diferenciar o texto
+  // entre trabalho científico e submissão artística (veja o formulário artístico abaixo).
+  if (emailParticipante && typeof emailjs !== "undefined") {
     emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
       to_email: emailParticipante,
       to_name: nomeParticipante,
       titulo: tituloTrabalho,
-    }).then((res) => {
-      console.log("[DEBUG] emailjs.send SUCESSO:", res);
+      tipo_submissao: "trabalho científico",
     }).catch((err) => {
-      console.warn("[DEBUG] emailjs.send FALHOU:", err);
+      console.warn("Não foi possível enviar o e-mail de confirmação:", err);
+      // Falha silenciosa: o trabalho já foi enviado ao FormSubmit normalmente,
+      // só o e-mail de cortesia ao participante que pode não ter saído.
     });
-  } else {
-    console.log("[DEBUG] emailParticipante estava vazio, não chamou emailjs.send");
   }
 });
 
@@ -887,6 +876,7 @@ function restaurarRascunho() {
   document.getElementById("fResumo").value = dados.resumo || "";
   if (dados.tipoEstudo) document.getElementById("fTipoEstudo").value = dados.tipoEstudo;
   if (termsCheckbox) termsCheckbox.checked = !!dados.aceiteTermos;
+  if (congressCheckbox) congressCheckbox.checked = !!dados.aceiteCongresso;
 
   // recria as linhas de autores extras necessárias antes de preenchê-las
   const autoresExtras = Array.isArray(dados.autoresExtras) ? dados.autoresExtras : [];
@@ -911,48 +901,21 @@ function restaurarRascunho() {
 
 restaurarRascunho();
 
-formSubmitTargetIframe.addEventListener("load", () => {
-  if (!formSubmitted) return; // ignora o load inicial (about:blank)
-
-  formSubmitted = false;
-
-  // Captura os dados ANTES do form.reset(), pra usar no e-mail de confirmação
-  const nomeParticipante = document.getElementById("fName").value;
-  const emailParticipante = document.getElementById("fEmail").value;
-  const tituloTrabalho = document.getElementById("fTitulo").value;
-
-  formStatus.textContent = "Seu trabalho foi enviado com sucesso!";
-  formStatus.classList.add("is-success");
-  showToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
-  form.reset();
-  clearDraft();
-  extraAuthorsContainer.innerHTML = "";
-  updateAddButtonState();
-  syncAuthorSelects();
-  submitBtn.disabled = false;
-  submitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
-
-  // Envia o e-mail de confirmação ao participante via EmailJS
-  if (emailParticipante) {
-    emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
-      to_email: emailParticipante,
-      to_name: nomeParticipante,
-      titulo: tituloTrabalho,
-    }).catch((err) => {
-      console.warn("Não foi possível enviar o e-mail de confirmação:", err);
-      // Falha silenciosa: o trabalho já foi enviado ao FormSubmit normalmente,
-      // só o e-mail de cortesia ao participante que pode não ter saído.
-    });
-  }
-});
-
 // ======================= Formulário de submissões artísticas =======================
 // Este bloco usa IDs próprios (prefixo "art") para conviver na mesma página com o
 // formulário de trabalhos científicos, sem conflito de nomes.
 //
-// IMPORTANTE: defina o endpoint de destino em js/script.js, dentro do objeto CONFIG:
-//   CONFIG.ART_SUBMISSION_ENDPOINT = "https://formsubmit.co/artistico.conem@gmail.com"
-// (ou o e-mail que você quiser usar para receber as submissões artísticas)
+// O envio vai para o MESMO endereço de e-mail do formulário científico
+// (CONFIG.SUBMISSION_ENDPOINT) — não é preciso configurar um endpoint separado.
+// O assunto do e-mail (_subject) já deixa claro que é uma submissão artística.
+//
+// IMPORTANTE: o formulário artístico atualmente NÃO tem campos de autores
+// extras no HTML (só o campo principal "Nome do Artista/Autor"). Por isso,
+// o bloco de "adicionar autor" abaixo é OPCIONAL: se os elementos com id
+// "artAddAuthorBtn" e "artExtraAuthors" não existirem na página, essa
+// funcionalidade fica simplesmente desativada, sem gerar erro no console
+// e sem afetar o restante do formulário. Se um dia você adicionar esses
+// campos no HTML, a funcionalidade passa a funcionar automaticamente.
 //
 // Todo o código abaixo roda dentro de DOMContentLoaded para garantir que os
 // elementos da seção já existam na página, não importa onde a tag <script>
@@ -1030,7 +993,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
-// Iframe oculto que recebe a resposta do FormSubmit sem navegar a página.
+  // Iframe oculto que recebe a resposta do FormSubmit sem navegar a página.
   let artFormSubmitTargetIframe = document.querySelector('iframe[name="artformsubmit-target"]');
   if (!artFormSubmitTargetIframe) {
     artFormSubmitTargetIframe = document.createElement("iframe");
@@ -1077,12 +1040,13 @@ document.addEventListener("DOMContentLoaded", function () {
     artSubmitBtn.disabled = true;
     artSubmitBtn.querySelector(".btn-label").textContent = "Enviando...";
 
-    artForm.action = CONFIG.ART_SUBMISSION_ENDPOINT.replace("/ajax", "");
+    // Mesmo endereço de destino do formulário científico.
+    artForm.action = CONFIG.SUBMISSION_ENDPOINT.replace("/ajax", "");
     artForm.method = "POST";
     artForm.enctype = "multipart/form-data";
     artForm.target = "artformsubmit-target";
 
-    addHiddenFieldArt(artForm, "_subject", `Nova submissão artística — XII CEMED: ${artForm.titulo?.value || ""}`);
+    addHiddenFieldArt(artForm, "_subject", `Nova submissão artística — XII CEMED: ${document.getElementById("artTitulo").value}`);
     addHiddenFieldArt(artForm, "_captcha", "false");
     addHiddenFieldArt(artForm, "_template", "table");
 
@@ -1104,19 +1068,24 @@ document.addEventListener("DOMContentLoaded", function () {
     showArtToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
     artForm.reset();
     clearArtDraft();
-    artExtraAuthorsContainer.innerHTML = "";
+    if (artExtraAuthorsContainer) artExtraAuthorsContainer.innerHTML = "";
     updateArtAddButtonState();
     syncArtAuthorSelects();
     artSubmitBtn.disabled = false;
     artSubmitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
 
-    // Envia o e-mail de confirmação ao participante via EmailJS
-    // TODO: crie um template específico para submissões artísticas, se quiser um texto diferente
+    // Envia o e-mail de confirmação ao participante via EmailJS.
+    // Usa o MESMO template do formulário científico (template_h1wgb9q), mas
+    // passa "tipo_submissao" = "submissão artística" para o texto do e-mail
+    // deixar claro que é uma obra artística e não um trabalho científico.
+    // -> No painel do EmailJS, edite o template e use a variável
+    //    {{tipo_submissao}} onde antes estava fixo "trabalho científico".
     if (emailParticipante && typeof emailjs !== "undefined") {
       emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
         to_email: emailParticipante,
         to_name: nomeParticipante,
         titulo: tituloTrabalho,
+        tipo_submissao: "submissão artística",
       }).catch((err) => {
         console.warn("Não foi possível enviar o e-mail de confirmação (artístico):", err);
       });
@@ -1134,46 +1103,60 @@ document.addEventListener("DOMContentLoaded", function () {
     input.value = value;
   }
 
+  // ---------------------------------------------------------------------
+  // Autores extras (artístico) — bloco OPCIONAL.
+  // Se o HTML da submissão artística não tiver o botão de adicionar autor
+  // (id="artAddAuthorBtn") nem o container de autores extras
+  // (id="artExtraAuthors"), essa funcionalidade fica desativada sem quebrar
+  // o resto do formulário — mesmo padrão de guarda usado no bloco de termos.
   const artAddAuthorBtn = document.getElementById("artAddAuthorBtn");
   const artExtraAuthorsContainer = document.getElementById("artExtraAuthors");
   const ART_MAX_EXTRA_AUTHORS = 7;
+  const hasArtAuthorManagement = !!(artAddAuthorBtn && artExtraAuthorsContainer);
 
-  artAddAuthorBtn.addEventListener("click", () => {
-    const currentRows = artExtraAuthorsContainer.querySelectorAll(".author-input-row").length;
-    if (currentRows >= ART_MAX_EXTRA_AUTHORS) {
-      showArtToast(`Você pode adicionar no máximo ${ART_MAX_EXTRA_AUTHORS} autores adicionais.`, "error");
-      return;
-    }
+  if (hasArtAuthorManagement) {
+    artAddAuthorBtn.addEventListener("click", () => {
+      const currentRows = artExtraAuthorsContainer.querySelectorAll(".author-input-row").length;
+      if (currentRows >= ART_MAX_EXTRA_AUTHORS) {
+        showArtToast(`Você pode adicionar no máximo ${ART_MAX_EXTRA_AUTHORS} autores adicionais.`, "error");
+        return;
+      }
 
-    const row = document.createElement("div");
-    row.className = "author-input-row";
+      const row = document.createElement("div");
+      row.className = "author-input-row";
 
-    const input = document.createElement("input");
-    input.type = "text";
-    input.autocomplete = "name";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.autocomplete = "name";
 
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "btn-remove-author";
-    removeBtn.setAttribute("aria-label", "Remover autor");
-    removeBtn.textContent = "×";
-    removeBtn.addEventListener("click", () => {
-      row.remove();
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "btn-remove-author";
+      removeBtn.setAttribute("aria-label", "Remover autor");
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", () => {
+        row.remove();
+        renumberArtAuthorRows();
+        updateArtAddButtonState();
+        syncArtAuthorSelects();
+      });
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      artExtraAuthorsContainer.appendChild(row);
+
       renumberArtAuthorRows();
       updateArtAddButtonState();
       syncArtAuthorSelects();
     });
 
-    row.appendChild(input);
-    row.appendChild(removeBtn);
-    artExtraAuthorsContainer.appendChild(row);
-
-    renumberArtAuthorRows();
-    updateArtAddButtonState();
-    syncArtAuthorSelects();
-  });
+    artExtraAuthorsContainer.addEventListener("input", syncArtAuthorSelects);
+  } else {
+    console.warn("Bloco de autores extras (artístico) não encontrado no HTML (verifique os IDs: artAddAuthorBtn, artExtraAuthors) — funcionalidade desativada, sem impacto no restante do formulário.");
+  }
 
   function renumberArtAuthorRows() {
+    if (!artExtraAuthorsContainer) return;
     const rows = artExtraAuthorsContainer.querySelectorAll(".author-input-row");
     rows.forEach((row, i) => {
       const authorNumber = i + 2; // autor 1 é o campo "Nome completo"
@@ -1184,6 +1167,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateArtAddButtonState() {
+    if (!artAddAuthorBtn || !artExtraAuthorsContainer) return;
     const currentRows = artExtraAuthorsContainer.querySelectorAll(".author-input-row").length;
     artAddAuthorBtn.disabled = currentRows >= ART_MAX_EXTRA_AUTHORS;
   }
@@ -1196,10 +1180,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const mainName = document.getElementById("artName").value.trim();
     if (mainName) names.push(mainName);
 
-    artExtraAuthorsContainer.querySelectorAll("input").forEach((input) => {
-      const val = input.value.trim();
-      if (val) names.push(val);
-    });
+    if (artExtraAuthorsContainer) {
+      artExtraAuthorsContainer.querySelectorAll("input").forEach((input) => {
+        const val = input.value.trim();
+        if (val) names.push(val);
+      });
+    }
 
     return names;
   }
@@ -1208,6 +1194,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const names = getAllArtAuthorNames();
 
     [artApresentador, artCorrespondente].forEach((select) => {
+      if (!select) return;
       const previousValue = select.value;
 
       select.innerHTML = '<option value="" disabled>Selecione</option>';
@@ -1229,7 +1216,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   document.getElementById("artName").addEventListener("input", syncArtAuthorSelects);
-  artExtraAuthorsContainer.addEventListener("input", syncArtAuthorSelects);
 
   /* =====================================================================
      Rascunho automático — salva os campos no localStorage.
@@ -1238,9 +1224,9 @@ document.addEventListener("DOMContentLoaded", function () {
      é salvo normalmente).
      ===================================================================== */
   function coletarRascunhoArt() {
-    const autoresExtras = Array.from(
-        artExtraAuthorsContainer.querySelectorAll(".author-input-row input")
-    ).map((input) => input.value);
+    const autoresExtras = artExtraAuthorsContainer
+        ? Array.from(artExtraAuthorsContainer.querySelectorAll(".author-input-row input")).map((input) => input.value)
+        : [];
 
     return {
       nome: document.getElementById("artName").value,
@@ -1248,10 +1234,7 @@ document.addEventListener("DOMContentLoaded", function () {
       instituicao: document.getElementById("artInstituicao").value,
       categoria: document.getElementById("artCategoria").value,
       titulo: document.getElementById("artTitulo").value,
-      descricao: document.getElementById("artDescricao").value,
       link: document.getElementById("artLink").value,
-      apresentador: artApresentador.value,
-      correspondente: artCorrespondente.value,
       aceiteTermos: artTermsCheckbox ? artTermsCheckbox.checked : false,
       aceiteCongresso: artCongressCheckbox ? artCongressCheckbox.checked : false,
       autoresExtras,
@@ -1303,20 +1286,21 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("artEmail").value = dados.email || "";
     document.getElementById("artInstituicao").value = dados.instituicao || "";
     document.getElementById("artTitulo").value = dados.titulo || "";
-    document.getElementById("artDescricao").value = dados.descricao || "";
     document.getElementById("artLink").value = dados.link || "";
     if (dados.categoria) document.getElementById("artCategoria").value = dados.categoria;
     if (artTermsCheckbox) artTermsCheckbox.checked = !!dados.aceiteTermos;
     if (artCongressCheckbox) artCongressCheckbox.checked = !!dados.aceiteCongresso;
 
     const autoresExtras = Array.isArray(dados.autoresExtras) ? dados.autoresExtras : [];
-    autoresExtras.forEach((_, i) => {
-      if (i < ART_MAX_EXTRA_AUTHORS) artAddAuthorBtn.click();
-    });
-    const linhas = artExtraAuthorsContainer.querySelectorAll(".author-input-row input");
-    linhas.forEach((input, i) => {
-      input.value = autoresExtras[i] || "";
-    });
+    if (hasArtAuthorManagement) {
+      autoresExtras.forEach((_, i) => {
+        if (i < ART_MAX_EXTRA_AUTHORS) artAddAuthorBtn.click();
+      });
+      const linhas = artExtraAuthorsContainer.querySelectorAll(".author-input-row input");
+      linhas.forEach((input, i) => {
+        input.value = autoresExtras[i] || "";
+      });
+    }
 
     syncArtAuthorSelects();
     if (dados.apresentador) artApresentador.value = dados.apresentador;
@@ -1329,5 +1313,4 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   restaurarRascunhoArt();
-
 }); // fim do DOMContentLoaded

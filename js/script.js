@@ -1044,52 +1044,86 @@ document.addEventListener("DOMContentLoaded", function () {
     artForm.action = CONFIG.SUBMISSION_ENDPOINT.replace("/ajax", "");
     artForm.method = "POST";
     artForm.enctype = "multipart/form-data";
-    artForm.target = "artformsubmit-target";
+
 
     addHiddenFieldArt(artForm, "_subject", `Nova submissão artística — XII CEMED: ${document.getElementById("artTitulo").value}`);
     addHiddenFieldArt(artForm, "_captcha", "false");
     addHiddenFieldArt(artForm, "_template", "table");
-
+    addHiddenFieldArt(artForm, "_next", "https://cemed-conem.com/#artistico");
     artFormSubmitted = true;
   });
 
-  artFormSubmitTargetIframe.addEventListener("load", () => {
-    if (!artFormSubmitted) return; // ignora o load inicial (about:blank)
+  // Substitua o seu artForm.addEventListener("submit"...) inteiro por este:
 
-    artFormSubmitted = false;
+  artForm.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Impede o envio imediato para dar tempo de rodar o EmailJS
 
-    // Captura os dados ANTES do form.reset(), pra usar no e-mail de confirmação
+    artFormStatus.textContent = "";
+    artFormStatus.className = "form-status";
+
+    const fileInput = document.getElementById("artArquivo");
+    const linkInput = document.getElementById("artLink");
+    const hasFile = fileInput.files && fileInput.files.length > 0;
+    const hasLink = linkInput.value.trim().length > 0;
+    const file = hasFile ? fileInput.files[0] : null;
+
+    if (!hasFile && !hasLink) {
+      artFormStatus.textContent = "Anexe um arquivo ou informe um link para a obra.";
+      artFormStatus.classList.add("is-error");
+      showArtToast("Envio não realizado: anexe um arquivo ou informe um link.", "error");
+      fileInput.focus();
+      return;
+    }
+
+    if (file && file.size > 5 * 1024 * 1024) {
+      artFormStatus.textContent = "O arquivo excede o limite de 5MB. Por favor, utilize um link externo (Drive/YouTube) para esta obra.";
+      artFormStatus.classList.add("is-error");
+      showArtToast("Envio não realizado: arquivo maior que 5MB.", "error");
+      fileInput.focus();
+      return;
+    }
+
+    if (!validarTermoSubmissaoArt()) return;
+    if (!validarCongressoSubmissaoArt()) return;
+
+    // 1. Atualiza o botão para o usuário saber que está carregando
+    artSubmitBtn.disabled = true;
+    artSubmitBtn.querySelector(".btn-label").textContent = "Enviando, aguarde...";
+
     const nomeParticipante = document.getElementById("artName").value;
     const emailParticipante = document.getElementById("artEmail").value;
     const tituloTrabalho = document.getElementById("artTitulo").value;
 
-    artFormStatus.textContent = "Sua obra foi enviada com sucesso!";
-    artFormStatus.classList.add("is-success");
-    showArtToast("Trabalho enviado! Você receberá a confirmação por e-mail em breve.", "success");
-    artForm.reset();
-    clearArtDraft();
-    if (artExtraAuthorsContainer) artExtraAuthorsContainer.innerHTML = "";
-    updateArtAddButtonState();
-    syncArtAuthorSelects();
-    artSubmitBtn.disabled = false;
-    artSubmitBtn.querySelector(".btn-label").textContent = "Enviar trabalho";
-
-    // Envia o e-mail de confirmação ao participante via EmailJS.
-    // Usa o MESMO template do formulário científico (template_h1wgb9q), mas
-    // passa "tipo_submissao" = "submissão artística" para o texto do e-mail
-    // deixar claro que é uma obra artística e não um trabalho científico.
-    // -> No painel do EmailJS, edite o template e use a variável
-    //    {{tipo_submissao}} onde antes estava fixo "trabalho científico".
+    // 2. Dispara o e-mail de confirmação (EmailJS) PRIMEIRO
     if (emailParticipante && typeof emailjs !== "undefined") {
-      emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
-        to_email: emailParticipante,
-        to_name: nomeParticipante,
-        titulo: tituloTrabalho,
-        tipo_submissao: "submissão artística",
-      }).catch((err) => {
-        console.warn("Não foi possível enviar o e-mail de confirmação (artístico):", err);
-      });
+      try {
+        await emailjs.send("service_zp6gc4s", "template_h1wgb9q", {
+          to_email: emailParticipante,
+          to_name: nomeParticipante,
+          titulo: tituloTrabalho,
+          tipo_submissao: "submissão artística",
+        });
+      } catch (err) {
+        console.warn("Não foi possível enviar o e-mail de confirmação:", err);
+      }
     }
+
+    // 3. Prepara e dispara o FormSubmit (Redirecionamento nativo sem iframe)
+    artForm.action = CONFIG.SUBMISSION_ENDPOINT.replace("/ajax", "");
+    artForm.method = "POST";
+    artForm.enctype = "multipart/form-data";
+    artForm.removeAttribute("target"); // Remove a dependência do iframe que causava o erro 500
+
+    addHiddenFieldArt(artForm, "_subject", `Nova submissão artística — XII CEMED: ${tituloTrabalho}`);
+    addHiddenFieldArt(artForm, "_captcha", "false");
+
+    // Aqui você define para onde a pessoa volta depois que o FormSubmit processar o arquivo
+    addHiddenFieldArt(artForm, "_next", "https://cemed-conem.com/#artistico");
+
+    clearArtDraft();
+
+    // Envia de fato (isso fará a página mudar e depois voltar pro _next)
+    artForm.submit();
   });
 
   function addHiddenFieldArt(form, name, value) {

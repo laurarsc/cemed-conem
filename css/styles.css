@@ -1120,3 +1120,10 @@ html[data-theme="dark"] .terms-toggle-btn{ color: var(--brand-bright); }
 @media (max-width: 520px){
   .terms-toggle-btn{ margin-left: 0; }
 }
+.art-btn-disabled {
+  cursor: not-allowed;
+}
+.art-btn-disabled:hover {
+  background-color: #d32f2f !important;
+  border-color: #d32f2f !important;
+}

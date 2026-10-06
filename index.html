@@ -191,6 +191,9 @@
           Edital Trabalhos Científicos
         </a>.
       </p>
+      <p class="art-deadline-notice" style="background:#d32f2f; border:1px solid #8a1f1a; color:#ffffff; padding:0.85rem 1rem; border-radius:8px; font-weight:600; margin-bottom:1.25rem;">
+        As submissões científicas foram encerradas em 29/09/2026. Não é mais possível enviar novos trabalhos nesta categoria.
+      </p>
 
       <form id="submissionForm" enctype="multipart/form-data" target="formsubmit-target">
         <!--
@@ -294,8 +297,8 @@
           </label>
         </div>
         <div class="form-field">
-        <button type="submit" class="btn btn-primary btn-wide" id="submitBtn">
-          <span class="btn-label">Enviar trabalho</span>
+        <button type="submit" class="btn btn-primary btn-wide" id="submitBtn" disabled>
+          <span class="btn-label">Prazo encerrado</span>
         </button>
         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
         </div>
@@ -322,7 +325,10 @@
           Edital Submissões Artísticas
         </a>.
       </p>
+      <p class="art-deadline-notice" style="background:#d32f2f; border:1px solid #8a1f1a; color:#ffffff; padding:0.85rem 1rem; border-radius:8px; font-weight:600; margin-bottom:1.25rem;">
 
+      As submissões artísticas foram encerradas em 29/09/2026. Não é mais possível enviar novos trabalhos nesta categoria.
+      </p>
       <form id="artSubmissionForm" enctype="multipart/form-data" target="artformsubmit-target">
         <!--
           SUBSTITUA AQUI, SE QUISER:
@@ -415,8 +421,8 @@
           </label>
         </div>
         <div class="form-field">
-          <button type="submit" class="btn btn-primary btn-wide" id="artSubmitBtn">
-            <span class="btn-label">Enviar trabalho</span>
+          <button type="submit" class="btn btn-primary btn-wide art-btn-disabled" id="artSubmitBtn" disabled>
+            <span class="btn-label">Prazo encerrado</span>
           </button>
           <p class="form-status" id="artFormStatus" role="status" aria-live="polite"></p>
         </div>

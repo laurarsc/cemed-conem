@@ -52,7 +52,7 @@ html[data-theme="dark"]{
   --bg:            #0d1712;
   --bg-alt:        #101d16;
   --surface:       #142219;
-  --text:          #eef2ee;
+  --text: #9f9f9f;
   --text-soft:     #a9bcae;
   --border:        rgba(238, 242, 238, 0.12);
   --shadow:        0 25px 60px -30px rgba(0, 0, 0, 0.7);
@@ -491,10 +491,12 @@ html[data-theme="dark"] .cell-dots i{ background: var(--brand-bright); }
 }
 .day-panel-title{ font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 .day-events{ display: flex; flex-direction: column; gap: .6rem; }
-.day-event-btn{
+.day-event-btn {
   width: 100%;
-  display: flex; align-items: flex-start; gap: .5rem 1rem;
-  flex-wrap: wrap;
+  display: flex;
+  align-items: center;      /* centraliza o "ver mais" na vertical */
+  gap: .5rem 1rem;
+  flex-wrap: nowrap;        /* não deixa o "ver mais" quebrar de linha */
   text-align: left;
   background: var(--bg-alt);
   border: 1px solid var(--border);
@@ -502,7 +504,20 @@ html[data-theme="dark"] .cell-dots i{ background: var(--brand-bright); }
   padding: .85rem 1.1rem;
   color: var(--text);
 }
+
+/* o span que contém título + local fica com o espaço restante */
+.day-event-btn > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+/* o span que contém o "Clique para ver mais" vai para o final */
+.day-event-btn > span:last-child {
+  margin-left: auto;
+  white-space: nowrap;
+}
 .day-event-btn:hover{ border-color: var(--brand); }
+
 .day-event-time{
   font-family: var(--font-display); font-weight: 700; color: var(--brand-strong);
   font-size: .95rem; white-space: nowrap;
@@ -1126,4 +1141,104 @@ html[data-theme="dark"] .terms-toggle-btn{ color: var(--brand-bright); }
 .art-btn-disabled:hover {
   background-color: #d32f2f !important;
   border-color: #d32f2f !important;
+}
+.day-event-btn .btn-ver-mais {
+  margin-left: auto;        /* empurra para o final da linha */
+  white-space: nowrap;      /* evita quebrar em duas linhas */
+  align-self: center;     /* Centraliza ele perfeitamente no meio na vertical, sem afetar o resto */
+}
+.btn-ver-mais:hover{ color: var(--brand); }
+
+@media (max-width: 600px) {
+  .day-event-btn {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "time  more"
+      "info  more";
+    align-items: center;
+    column-gap: .75rem;
+    row-gap: .15rem;
+  }
+
+  .day-event-time                    { grid-area: time; }
+  .day-event-btn > span:nth-child(2) { grid-area: info; min-width: 0; }
+
+  /* span que envolve o "ver mais" */
+  .day-event-btn > span:last-child {
+    grid-area: more;
+    align-self: center;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    height: auto;
+  }
+
+  /* o "ver mais" em si vira só a seta */
+  .day-event-btn .btn-ver-mais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  .day-event-btn .btn-ver-mais::after {
+    content: "›";
+    font-size: 1.8rem;
+    line-height: 1;
+    display: block;
+  }
+}@media (max-width: 600px) {
+  .day-event-btn {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "time  more"
+      "info  more";
+    align-items: center;
+    column-gap: .75rem;
+    row-gap: .15rem;
+  }
+
+  .day-event-time                    { grid-area: time; }
+  .day-event-btn > span:nth-child(2) { grid-area: info; min-width: 0; }
+
+  /* span que envolve o "ver mais" */
+  .day-event-btn > span:last-child {
+    grid-area: more;
+    align-self: center;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    height: auto;
+  }
+
+  /* o "ver mais" em si vira só a seta */
+  .day-event-btn .btn-ver-mais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  .day-event-btn .btn-ver-mais::after {
+    content: "›";
+    font-size: 1.8rem;
+    line-height: 1;
+    display: block;
+  }
 }

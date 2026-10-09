@@ -358,6 +358,7 @@ function showDayPanel(key){
             <span class="day-event-title">${ev.title}</span><br>
             <span class="day-event-tag">${ev.tag} · ${ev.location}</span>
           </span>
+          <span><span class="btn-ver-mais" id="openModalBtn">Ver mais</span></span>   
         </button>`;
       dayEventsList.appendChild(li);
     });

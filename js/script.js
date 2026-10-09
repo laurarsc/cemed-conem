@@ -10,6 +10,7 @@ const CONFIG = {
   // Link oficial de inscrições (Sympla, Even3, Eventbrite, etc.)
   // SUBSTITUA AQUI pelo link real da plataforma de inscrição/pagamento.
   REGISTRATION_URL: "https://cheers.com.br/evento/xii-cemed-conem-2026-33876",
+  NEW_REGISTRATION_URL: "https://cheers.com.br/evento/inscricoes-xii-cemed-conem-2026-37232",
 
   // Endpoint de envio do formulário de trabalhos científicos.
   // Usa o serviço gratuito FormSubmit (https://formsubmit.co) — sem backend.
@@ -266,7 +267,7 @@ function openModal({ tag, title, meta, body }){
   modalTitle.textContent = title;
   modalMeta.textContent = meta;
   modalBody.textContent = body;
-  modalCtaBtn.href = CONFIG.REGISTRATION_URL;
+  modalCtaBtn.href = CONFIG.NEW_REGISTRATION_URL;
   modalOverlay.classList.add("is-open");
   document.body.style.overflow = "hidden";
   modalClose.focus();
@@ -505,7 +506,7 @@ mainNav.querySelectorAll("a").forEach(link => {
 });
 
 // ======================= Botão de inscrição =======================
-document.getElementById("registrationBtn").setAttribute("href", CONFIG.REGISTRATION_URL);
+document.getElementById("registrationBtn").setAttribute("href", CONFIG.NEW_REGISTRATION_URL);
 
 
 // ======================= Formulário de trabalhos científicos =======================
